@@ -65,8 +65,8 @@ CREATE TABLE IF NOT EXISTS valoraciones(
 
 CREATE TABLE IF NOT EXISTS comentarios(
     id_comentario SERIAL PRIMARY KEY,
-    id_usuario INT NOT NULL,
-    id_receta INT NOT NULL,
+    id_usuario INT NOT NULL ON DELETE CASCADE,
+    id_receta INT NOT NULL ON DELETE CASCADE,
     comentario TEXT NOT NULL,
     fecha_comentario TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
