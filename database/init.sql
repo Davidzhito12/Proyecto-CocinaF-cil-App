@@ -15,6 +15,15 @@ CREATE TABLE IF NOT EXISTS categorias(
     descripcion_categoria TEXT NOT NULL
 );
 
+INSERT INTO categorias (nombre_categoria, descripcion_categoria) VALUES
+('Postres', 'Deliciosas recetas de postres para endulzar tu día.'),
+('Desayunos', 'Recetas fáciles y rápidas para comenzar tu día con energía.'),
+('Almuerzos', 'Recetas variadas para disfrutar de un almuerzo delicioso.'),
+('Platos Principales', 'Recetas de platos principales para cada ocasión.'),
+('Ensaladas', 'Frescas y saludables recetas de ensaladas.'),
+('Sopas', 'Reconfortantes recetas de sopas para cualquier estación.'),
+('Bebidas', 'Refrescantes recetas de bebidas para todos los gustos.');
+
 CREATE TABLE IF NOT EXISTS recetas(
     id_receta SERIAL PRIMARY KEY,
     id_categoria INT NOT NULL,
