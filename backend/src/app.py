@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager
 import os
 
 load_dotenv()
@@ -10,6 +11,9 @@ def create_app():
     
     #Configuración básica de la aplicación
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+
+    JWTManager(app)
 
     #Habilitar CORS para permitir solicitudes desde el frontend
     CORS(app)
