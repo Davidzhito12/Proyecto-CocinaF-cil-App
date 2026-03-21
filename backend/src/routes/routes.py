@@ -211,3 +211,113 @@ def login_admin():
         return jsonify({
             "message": "Error al procesar el login"
         }), 500
+
+#Editar receta (solo para el autor)
+@main_routes.route("/recetas/<int:id_receta>", methods=["PUT"])
+@jwt_required()
+def editar_receta(id_receta):
+    try:
+        data = request.get_json()
+        id_autor = int(get_jwt_identity())
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Verificar receta
+        query_verificacion = "SELECT id_autor FROM recetas WHERE id_receta = %s"
+        cursor.execute(query_verificacion, (id_receta,))
+        resultado = cursor.fetchone()
+
+        if not resultado:
+            return jsonify({
+                "message": "Receta no encontrada"
+            }), 404
+
+        # Validar autor
+        if resultado[0] != id_autor:
+            return jsonify({
+                "message": "No tienes permiso para editar esta receta"
+            }), 403
+
+        # Actualizar
+        query_actualizacion = """
+        UPDATE recetas
+        SET nombre_receta = %s,
+            descripcion_receta = %s,
+            ingredientes_receta = %s,
+            instrucciones_receta = %s,
+            tiempo_preparacion = %s,
+            dificultad = %s,
+            porciones_receta = %s,
+            id_categoria = %s,
+            imagen_receta = %s
+        WHERE id_receta = %s
+        """
+
+        cursor.execute(query_actualizacion, (
+            data.get("nombre_receta"),
+            data.get("descripcion_receta"),
+            data.get("ingredientes_receta"),
+            data.get("instrucciones_receta"),
+            data.get("tiempo_preparacion"),
+            data.get("dificultad"),
+            data.get("porciones_receta"),
+            data.get("id_categoria"),
+            data.get("imagen_receta"),
+            id_receta
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "message": "Receta actualizada exitosamente"
+        }), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "message": "Error al actualizar la receta"
+        }), 500
+    
+#Eliminar receta (solo para el autor)
+@main_routes.route("/recetas/<int:id_receta>", methods=["DELETE"])
+@jwt_required()
+def eliminar_receta(id_receta):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # Buscar receta + autor
+        cursor.execute(
+            "SELECT id_autor FROM recetas WHERE id_receta = %s",
+            (id_receta,)
+        )
+        receta = cursor.fetchone()
+
+        print("RECETA:", receta)
+
+        if not receta:
+            return jsonify({"message": "Receta no encontrada"}), 404
+
+        id_admin = int(get_jwt_identity())
+
+        # Validar autor
+        if receta[0] != id_admin:
+            return jsonify({"message": "No autorizado"}), 403
+
+        # Eliminar
+        cursor.execute("DELETE FROM recetas WHERE id_receta = %s", (id_receta,))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({"message": "Receta eliminada correctamente"}), 200
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"message": "Error al eliminar receta"}), 500
