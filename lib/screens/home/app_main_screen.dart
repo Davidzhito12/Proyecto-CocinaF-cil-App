@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/screens/recipes/all_recipes_screen.dart';
+import 'package:flutter_application_1/screens/favorites/favorites_screen.dart';
 import '../../nn.dart';
 
 const List<Map<String, String>> topSearchItems = [
@@ -28,6 +29,12 @@ class AppMainScreen extends StatefulWidget {
 
 class _AppMainScreenState extends State<AppMainScreen> {
   int _selectedIndex = 0;
+  String _userName = 'Ali David Gonzalez Macea';
+  String _userHandle = '@cook_115836130';
+  String _userEmail = 'cook_115836130@example.com';
+  bool _notificationsEnabled = true;
+  bool _darkModeEnabled = false;
+  bool _autoUpdateEnabled = false;
 
   void _showProfileMenu(BuildContext context) {
     showModalBottomSheet(
@@ -78,6 +85,18 @@ class _AppMainScreenState extends State<AppMainScreen> {
       title: Text(label),
       onTap: () {
         Navigator.of(context).pop();
+        if (label == 'Perfil') {
+          _openProfileScreen();
+          return;
+        }
+        if (label == 'Ajustes') {
+          setState(() => _selectedIndex = 3);
+          return;
+        }
+        if (label == 'Preguntas frecuentes') {
+          _openHelpSupport();
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$label seleccionado')));
       },
     );
@@ -87,19 +106,233 @@ class _AppMainScreenState extends State<AppMainScreen> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AllRecipesScreen()));
   }
 
+  void _openProfileScreen() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ProfileScreen(
+        name: _userName,
+        email: _userEmail,
+        onSave: (name, email) {
+          setState(() {
+            _userName = name;
+            _userEmail = email;
+          });
+        },
+      ),
+    ));
+  }
+
+  void _openEmailDetails() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Correo electrónico'),
+          content: Text('$_userEmail\n\nEste correo se usa para notificaciones y soporte.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cerrar')),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openHelpSupport() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportScreen()));
+  }
+
+  void _showAboutApp() {
+    showAboutDialog(
+      context: context,
+      applicationName: 'Cocina Fácil',
+      applicationVersion: '1.0.0',
+      applicationLegalese: '© 2026 Cocina Fácil',
+      children: const [
+        Padding(
+          padding: EdgeInsets.only(top: 8),
+          child: Text('Descubre recetas, guarda favoritos y administra tu perfil desde la app.'),
+        ),
+      ],
+    );
+  }
+
+  void _logout() {
+    setState(() {
+      _userName = 'Usuario';
+      _userEmail = 'cook_115836130@example.com';
+      _notificationsEnabled = false;
+      _darkModeEnabled = false;
+      _autoUpdateEnabled = false;
+      _selectedIndex = 0;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sesión cerrada')));
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cerrar sesión'),
+          content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _logout();
+              },
+              child: const Text('Cerrar sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSettingsScreen() {
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        children: [
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: kprimarycolor.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.settings, color: Color(0xFFFF9900), size: 36),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text('Ajustes', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 4),
+                  Text('Administra tu perfil y preferencias', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 4,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.person, color: Color(0xFFFF9900)),
+                  title: const Text('Perfil'),
+                  subtitle: Text(_userName),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                  onTap: _openProfileScreen,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.email, color: Color(0xFFFF9900)),
+                  title: const Text('Correo electrónico'),
+                  subtitle: Text(_userEmail),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                  onTap: _openEmailDetails,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 4,
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Notificaciones'),
+                  subtitle: const Text('Recibe alertas de nuevas recetas y ofertas'),
+                  value: _notificationsEnabled,
+                  activeColor: const Color(0xFFFF9900),
+                  onChanged: (value) => setState(() => _notificationsEnabled = value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  title: const Text('Modo oscuro'),
+                  subtitle: const Text('Activa un tema más cómodo para la noche'),
+                  value: _darkModeEnabled,
+                  activeColor: const Color(0xFFFF9900),
+                  onChanged: (value) => setState(() => _darkModeEnabled = value),
+                ),
+                const Divider(height: 1),
+                SwitchListTile(
+                  title: const Text('Actualizaciones automáticas'),
+                  subtitle: const Text('Descarga contenido y mejoras automáticamente'),
+                  value: _autoUpdateEnabled,
+                  activeColor: const Color(0xFFFF9900),
+                  onChanged: (value) => setState(() => _autoUpdateEnabled = value),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 4,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.help_outline, color: Color(0xFFFF9900)),
+                  title: const Text('Ayuda y soporte'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                  onTap: _openHelpSupport,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.info_outline, color: Color(0xFFFF9900)),
+                  title: const Text('Acerca de la app'),
+                  subtitle: const Text('Versión 1.0.0'),
+                  onTap: _showAboutApp,
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Color(0xFFFF9900)),
+                  title: const Text('Cerrar sesión'),
+                  onTap: _confirmLogout,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            Expanded(child: _buildBodyContent()),
-          ],
-        ),
-      ),
+      body: _selectedIndex == 0
+          ? SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  Expanded(child: _buildBodyContent()),
+                ],
+              ),
+            )
+          : _selectedIndex == 1
+              ? const FavoritesScreen()
+              : _selectedIndex == 2
+                  ? SafeArea(
+                      child: Center(
+                        child: Text(
+                          'Mi menú',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    )
+                  : _buildSettingsScreen(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
@@ -191,7 +424,7 @@ class _AppMainScreenState extends State<AppMainScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Categorías populares', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              TextButton(child: const Text('Ver más'), onPressed: () {}),
+              TextButton(child: const Text('Ver más'), onPressed: () => _openAllRecipes()),
             ],
           ),
           const SizedBox(height: 12),
@@ -329,6 +562,134 @@ class _AppMainScreenState extends State<AppMainScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+}
+
+class ProfileScreen extends StatefulWidget {
+  final String name;
+  final String email;
+  final void Function(String name, String email) onSave;
+
+  const ProfileScreen({super.key, required this.name, required this.email, required this.onSave});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.name);
+    _emailController = TextEditingController(text: widget.email);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _saveProfile() {
+    widget.onSave(_nameController.text.trim(), _emailController.text.trim());
+    Navigator.of(context).pop();
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil actualizado')));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Editar perfil'),
+        backgroundColor: const Color(0xFFFF9900),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Nombre', prefixIcon: Icon(Icons.person)),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'Correo electrónico', prefixIcon: Icon(Icons.email)),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF9900)),
+              onPressed: _saveProfile,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: Text('Guardar cambios', style: TextStyle(fontSize: 16)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class HelpSupportScreen extends StatelessWidget {
+  const HelpSupportScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Ayuda y soporte'),
+        backgroundColor: const Color(0xFFFF9900),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text('Preguntas frecuentes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: const ListTile(
+              title: Text('¿Cómo guardo una receta como favorita?'),
+              subtitle: Text('Toca el corazón en la pantalla de receta para agregarla a Favoritos.'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: const ListTile(
+              title: Text('¿Dónde veo mis recetas guardadas?'),
+              subtitle: Text('Ve a la pestaña Favoritos en la barra inferior.'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: const ListTile(
+              title: Text('¿Cómo cambio mi información?'),
+              subtitle: Text('Edita tu nombre y correo desde Perfil en Ajustes.'),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text('Contacto', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          const ListTile(
+            leading: Icon(Icons.email, color: Color(0xFFFF9900)),
+            title: Text('support@cocinafacil.app'),
+          ),
+          const ListTile(
+            leading: Icon(Icons.phone, color: Color(0xFFFF9900)),
+            title: Text('+57 300 000 0000'),
+          ),
+        ],
       ),
     );
   }

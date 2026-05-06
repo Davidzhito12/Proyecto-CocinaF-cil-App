@@ -1,4 +1,5 @@
 class Recipe {
+  final String id;
   final String title;
   final String subtitle;
   final String description;
@@ -6,8 +7,10 @@ class Recipe {
   final String category;
   final List<String> ingredients;
   final List<String> steps;
+  bool isFavorite;
 
-  const Recipe({
+  Recipe({
+    required this.id,
     required this.title,
     required this.subtitle,
     required this.description,
@@ -15,5 +18,6 @@ class Recipe {
     required this.category,
     required this.ingredients,
     required this.steps,
+    this.isFavorite = false,
   });
 }
